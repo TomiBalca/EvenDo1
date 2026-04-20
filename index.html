@@ -1,0 +1,1987 @@
+<!DOCTYPE html>
+<html lang="es" style="scroll-behavior: smooth;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EvenDo | Eventos Premium RD</title>
+    
+    <!-- Librerías necesarias -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"> 
+    
+    <style>
+    :root { 
+        --primary: #10B981; --primary-hover: #059669;
+        --dark: #0f172a; --text-gray: #64748b;
+        --bg: #f8fafc; --white: #ffffff;
+    }
+    .dark {
+        --primary: #10B981; --primary-hover: #059669;
+        --dark: #f8fafc; --text-gray: #cbd5e1;
+        --bg: #0f172a; --white: #1e293b;
+    }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); overflow-x: hidden; }
+
+    /* Loader */
+    .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--white); display: flex; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.5s, visibility 0.5s; display: none; }
+    .loader.hidden { opacity: 0; visibility: hidden; }
+    .spinner { width: 50px; height: 50px; border: 5px solid #f3f3f3; border-top: 5px solid var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    /* Navbar */
+    .navbar { 
+        display: flex; justify-content: space-between; align-items: center; 
+        padding: 0 8%; height: 80px; background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 1000;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+    }
+    .logo { font-size: 28px; font-weight: 800; text-decoration: none; color: var(--dark); }
+    .logo span { color: var(--primary); }
+    .hamburger { display: none; background: none; border: none; font-size: 24px; cursor: pointer; color: var(--dark); }
+    .nav-links { display: flex; gap: 30px; align-items: center; }
+    .nav-links a { text-decoration: none; color: var(--dark); font-weight: 500; transition: 0.3s; cursor: pointer; }
+    .nav-links a:hover { color: var(--primary); }
+
+    .dropdown { position: relative; display: inline-block; }
+    .dropdown-content {
+        display: none; position: absolute; background-color: var(--white);
+        min-width: 180px; box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+        border-radius: 12px; z-index: 1; top: 100%; overflow: hidden;
+    }
+    .dropdown-content a { color: var(--dark); padding: 12px 16px; display: block; font-size: 14px; text-decoration: none; }
+    .dropdown:hover .dropdown-content { display: block; }
+
+    /* Slider */
+    .slider-wrapper { position: relative; height: 500px; margin: 40px 8%; overflow: visible; border-radius: 30px; background: var(--white); box-shadow: 0 20px 40px rgba(0,0,0,0.05); }
+    .slide { display: none; height: 100%; grid-template-columns: 1fr 1fr; align-items: center; animation: fadeIn 0.8s ease-in-out; }
+    .slide.active { display: grid; }
+    .slide-img { height: 100%; background-size: cover; background-position: center; }
+    .slide-content { padding: 60px; }
+    .slide-content h2 { font-size: 42px; margin-bottom: 20px; }
+    .slide-content p { color: var(--text-gray); font-size: 18px; line-height: 1.6; }
+
+    .prev, .next {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(0,0,0,0.5);
+        color: white;
+        border: none;
+        padding: 10px;
+        cursor: pointer;
+        font-size: 18px;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.3s;
+        z-index: 10;
+    }
+    .prev:hover, .next:hover {
+        background: rgba(0,0,0,0.8);
+    }
+    .prev { left: -50px; }
+    .next { right: -50px; }
+
+    .dots {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 10;
+    }
+    .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.5);
+        cursor: pointer;
+        transition: background 0.3s;
+    }
+    .dot.active {
+        background: var(--primary);
+    }
+
+    /* Responsive Slider */
+    @media (max-width: 768px) {
+        .navbar { padding: 0 4%; }
+        .hamburger { display: block; }
+        .nav-links { display: none; position: absolute; top: 80px; left: 0; width: 100%; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); flex-direction: column; gap: 20px; padding: 20px 4%; box-shadow: 0 4px 20px rgba(0,0,0,0.03); }
+        .nav-links.active { display: flex; }
+        .dropdown { width: 100%; text-align: center; }
+        .dropdown-content { position: static; display: none; background: transparent; box-shadow: none; border-radius: 0; }
+        .dropdown.active .dropdown-content { display: block; }
+        .dropdown-content a { text-align: center; }
+        .slider-wrapper { height: auto; margin: 20px 4%; }
+        .slide { display: none; height: 100%; grid-template-columns: 1fr; align-items: center; animation: fadeIn 0.8s ease-in-out; }
+        .slide-img { height: 250px; }
+        .slide-content { padding: 20px; text-align: center; }
+        .slide-content h2 { font-size: 28px; }
+        .slide-content p { font-size: 16px; }
+        .slide.active { display: grid !important; }
+        .prev, .next { width: 30px; height: 30px; font-size: 14px; left: auto; right: auto; }
+        .prev { left: 10px; }
+        .next { right: 10px; }
+        .dots { bottom: 10px; }
+        .dot { width: 8px; height: 8px; }
+        .galeria-section { padding: 60px 4%; }
+        .galeria-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .footer { padding: 30px 4%; }
+        .footer-content { grid-template-columns: 1fr; gap: 20px; }
+        .footer-section h3 { font-size: 20px; }
+        .footer-section h4 { font-size: 16px; }
+        .social-links { justify-content: center; }
+        #footerForm .form-row { flex-direction: column; }
+        #footerForm textarea { flex: none; height: 80px; }
+    }
+
+    /* Grid Servicios */
+    #seccion-servicios { display: none; padding-bottom: 80px; }
+    .grid-servicios { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; padding: 0 8%; }
+    .card { background: var(--white); padding: 35px; border-radius: 25px; border: 1px solid #eef2f6; transition: 0.4s; text-align: center; display: none; }
+    .card.visible { display: block; animation: fadeIn 0.5s ease; }
+    .card:hover { transform: translateY(-10px); border-color: var(--primary); box-shadow: 0 20px 30px rgba(0,0,0,0.05); }
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: bold; margin-bottom: 10px; text-transform: uppercase; }
+    .badge-normal { background: #f1f5f9; color: #475569; }
+    .badge-vip { background: #dcfce7; color: #166534; }
+    .badge-premium { background: #fef3c7; color: #92400e; }
+    .precio { font-size: 28px; font-weight: 800; margin: 15px 0; color: var(--dark); }
+    .btn-buy { width: 100%; padding: 14px; background: var(--dark); color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+    .btn-buy:hover { background: var(--primary); }
+
+    /* Galería */
+    .galeria-section { padding: 80px 8%; text-align: center; }
+    .galeria-section h2 { font-size: 36px; margin-bottom: 40px; color: var(--dark); }
+    .galeria-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .galeria-item { position: relative; overflow: hidden; border-radius: 15px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); transition: transform 0.3s; }
+    .galeria-item:hover { cursor: pointer; transform: scale(1.05); }
+    .galeria-item img { cursor: pointer; width: 100%; height: 200px; object-fit: cover; transition: transform 0.3s, filter 0.3s; }
+    .galeria-item:hover img { transform: scale(1.1); filter: brightness(0.5); }
+    .galeria-item .overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: flex; flex-direction: column; justify-content: center; align-items: center; opacity: 0; transition: opacity 0.3s; color: white; padding: 20px; box-sizing: border-box; }
+    .galeria-item:hover .overlay { opacity: 1; }
+    .galeria-item .overlay h3 { margin: 0 0 10px 0; font-size: 20px; }
+    .galeria-item .overlay p { margin: 0; font-size: 14px; text-align: center; }
+
+    /* Reseñas */
+    .reviews-section { padding: 80px 8%; background: linear-gradient(135deg, var(--bg) 0%, #e0f2fe 100%); }
+    .reviews-section h2 { font-size: 36px; margin-bottom: 30px; color: var(--dark); text-align: center; }
+    .review-list { display: grid; gap: 20px; margin-bottom: 40px; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); }
+    .review-card { background: var(--white); border-radius: 20px; padding: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.07); color: var(--dark); border: 1px solid #e2e8f0; transition: transform 0.3s, box-shadow 0.3s; }
+    .review-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.1); }
+    .review-card .review-header { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+    .review-stars { color: #f59e0b; font-size: 18px; letter-spacing: 1px; }
+    .review-meta { font-size: 13px; color: #64748b; }
+    .review-card p { margin: 0 0 12px; line-height: 1.6; }
+    .review-card .review-service { font-weight: 700; margin-bottom: 8px; color: var(--primary); }
+    .review-form { display: grid; gap: 15px; padding: 30px; background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%); border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); border: 1px solid #334155; }
+    .review-form h3 { margin: 0 0 10px; color: #ffffff; text-align: center; font-size: 24px; }
+    .review-form label { color: #cbd5e1; font-weight: 600; margin-bottom: 5px; display: block; }
+    .review-form input, .review-form textarea, .review-form select { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #334155; background: #020617; color: white; box-sizing: border-box; transition: border-color 0.3s; }
+    .review-form input:focus, .review-form textarea:focus, .review-form select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    .review-form textarea { min-height: 120px; resize: vertical; }
+    .review-form button { width: 100%; padding: 14px; border: none; border-radius: 12px; background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%); color: white; font-weight: 700; cursor: pointer; transition: transform 0.3s; }
+    .review-form button:hover { transform: translateY(-2px); }
+    .service-cards { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); margin-bottom: 40px; }
+    .service-card { background: var(--white); border-radius: 15px; padding: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s; cursor: pointer; }
+    .service-card:hover { transform: scale(1.05); }
+    .service-card img { width: 100%; height: 120px; object-fit: cover; border-radius: 10px; margin-bottom: 10px; }
+    .service-card h4 { margin: 10px 0; font-size: 18px; color: var(--dark); }
+    .stars { display: flex; justify-content: center; gap: 5px; }
+    .star { font-size: 24px; color: #ddd; transition: color 0.3s, transform 0.3s; cursor: pointer; }
+    .star:hover, .star.active, .star.hover { color: #f59e0b; transform: scale(1.2); }
+    .mini-review-form { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 3000; width: 90%; max-width: 400px; }
+    .mini-review-form h3 { margin-top: 0; color: var(--dark); text-align: center; }
+    .mini-review-form input, .mini-review-form textarea { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; }
+    .mini-review-form button { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin: 5px; }
+    .mini-review-form button:first-of-type { background: var(--primary); color: white; }
+    .mini-review-form button:last-of-type { background: #ccc; color: black; }
+    .view-all { text-align: center; color: var(--primary); font-weight: 600; cursor: pointer; margin-top: 20px; }
+
+    /* Modal y Formulario de Pago */
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 2000; justify-content: center; align-items: center; padding: 20px; }
+    .modal { background: var(--dark); color: white; padding: 30px; border-radius: 20px; width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+    .modal::-webkit-scrollbar { width: 8px; }
+    .modal::-webkit-scrollbar-track { background: rgba(255,255,255,0.1); border-radius: 10px; }
+    .modal::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+    .modal::-webkit-scrollbar-thumb:hover { background: var(--primary-hover); }
+    .modal h2 { color: var(--primary); margin-top: 0; font-size: 24px; text-align: center; }
+    .modal p { font-size: 14px; color: var(--text-gray); margin-bottom: 20px; text-align: center; }
+    .modal label { display: block; font-size: 14px; font-weight: 600; color: var(--dark); margin-bottom: 8px; }
+    .modal input { width: 100%; padding: 14px; margin-bottom: 20px; border: 2px solid var(--primary); border-radius: 12px; box-sizing: border-box; font-size: 16px; transition: border-color 0.3s; background: var(--bg); color: var(--dark); }
+    .modal input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1); }
+    .modal input[type="date"] { cursor: pointer; }
+    .modal .card-fields { display: flex; gap: 15px; }
+    .modal .card-fields > div { flex: 1; }
+    .modal button { width: 100%; padding: 16px; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; font-size: 16px; margin-top: 10px; }
+    .modal .btn-buy { background: var(--primary); color: white; }
+    .modal .btn-buy:hover { background: var(--primary-hover); }
+    .modal .btn-cancel { background: transparent; color: var(--text-gray); border: 1px solid #e2e8f0; }
+    .modal .btn-cancel:hover { background: #f8fafc; }
+    
+
+    /* Footer */
+    .footer { background: var(--dark); color: white; padding: 40px 8% 20px; margin-top: 40px; }
+    .footer-content { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 30px; margin-bottom: 20px; }
+    .footer-section h3, .footer-section h4 { margin-bottom: 15px; color: var(--primary); }
+    .footer-section h3 { font-size: 24px; }
+    .footer-section h4 { font-size: 18px; }
+    .footer-section p { margin: 5px 0; line-height: 1.6; }
+    .footer-section ul { list-style: none; padding: 0; }
+    .footer-section ul li { margin: 8px 0; }
+    .footer-section ul li a { color: white; text-decoration: none; transition: 0.3s; }
+    .footer-section ul li a:hover { color: var(--primary); }
+    .social-links { display: flex; gap: 15px; }
+    .social-link { color: white; text-decoration: none; padding: 8px 12px; border: 1px solid var(--primary); border-radius: 5px; transition: 0.3s; }
+    .social-link:hover { padding-top: 10px;  }
+    .social-link:hover { background: var(--primary); }
+    .footer-bottom { border-top: 1px solid #444; padding-top: 20px; text-align: center; font-size: 14px; color: #ccc; }
+    .theme-btn { background: var(--primary); color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+    .theme-btn:hover { background: var(--primary-hover); }
+
+    /* Footer Form */
+    #footerForm { display: flex; flex-direction: column; gap: 10px; }
+    #footerForm .form-row { display: flex; gap: 10px; }
+    #footerForm input { flex: 1; }
+    #footerForm textarea { flex: 2; }
+    #footerForm button { align-self: flex-start; }
+    #footerForm input, #footerForm textarea { padding: 8px; border: 1px solid #555; border-radius: 5px; background: transparent; color: white; font-family: inherit; }
+    #footerForm input::placeholder, #footerForm textarea::placeholder { color: #ccc; }
+    .btn-footer-send { padding: 8px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; transition: 0.3s; }
+    .btn-footer-send:hover { background: var(--primary-hover); }
+
+    /* Estadísticas */
+    .estadisticas-section { padding: 80px 8%; background: var(--white); }
+    .estadisticas-section h2 { font-size: 36px; margin-bottom: 40px; color: var(--dark); text-align: center; }
+    .estadisticas-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 40px; }
+    .stat-card { background: linear-gradient(135deg, var(--primary) 0%, #059669 100%); color: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.2); text-align: center; }
+    .stat-card h3 { margin-top: 0; font-size: 24px; margin-bottom: 10px; }
+    .stat-number { font-size: 42px; font-weight: 800; margin: 15px 0; }
+    .stat-label { font-size: 14px; opacity: 0.9; }
+    .charts-container { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 30px; margin-bottom: 40px; }
+    .chart-box { background: var(--white); padding: 25px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); border: 1px solid #eef2f6; }
+    .chart-box h3 { text-align: center; color: var(--dark); margin-top: 0; }
+    .products-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    .products-table th { background: var(--dark); color: white; padding: 15px; text-align: left; font-weight: 600; }
+    .products-table td { padding: 15px; border-bottom: 1px solid #eef2f6; }
+    .products-table tr:hover { background: #f8fafc; }
+    .products-table .rank { font-weight: 800; color: var(--primary); }
+    .locations-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+    .location-card { background: #f8fafc; padding: 20px; border-radius: 12px; border-left: 4px solid var(--primary); }
+    .location-card h4 { margin-top: 0; color: var(--dark); }
+    .location-card p { margin: 5px 0; color: var(--text-gray); }
+    .time-filter { display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap; }
+    .time-btn { padding: 10px 20px; background: #e2e8f0; color: var(--dark); border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; font-weight: 500; }
+    .time-btn.active { background: var(--primary); color: white; }
+    .time-btn:hover { background: var(--primary); color: white; }
+
+    @media (max-width: 768px) {
+        .estadisticas-section { padding: 40px 4%; }
+        .estadisticas-section h2 { font-size: 28px; margin-bottom: 30px; }
+        .charts-container { grid-template-columns: 1fr; }
+        .productos-table { font-size: 14px; }
+        .productos-table th, .productos-table td { padding: 10px; }
+    }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+</style>
+
+</head>
+<body>
+    <div id="loader" class="loader">
+        <div class="spinner"></div>
+    </div>
+
+    <nav class="navbar">
+        <a href="index.html" class="logo">Even<span>Do</span></a>
+        <button class="hamburger" onclick="toggleMenu()">☰</button>
+        <div class="nav-links">
+            <a onclick="scrollToInicio()">Inicio</a>
+            <div class="dropdown">
+                <a onclick="toggleDropdown()">Servicios ▾</a>
+                <div class="dropdown-content">
+                    <a onclick="filtrar('bodas')">Bodas</a>
+                    <a onclick="filtrar('cumple')">Cumpleaños</a>
+                    <a onclick="filtrar('night')">Fiesta Nocturna</a>
+                </div>
+            </div>
+            <a onclick="scrollToGaleria()">Galería</a>
+            <a onclick="scrollToEstadisticas()">Estadísticas</a>
+            <a onclick="scrollToFooter()">Contacto</a>
+        </div>
+    </nav>
+<div id="Inicio"></div>
+    <div class="slider-wrapper">
+        <div class="slide active">
+            <div class="slide-img" style="border-radius: 30px; background-image: url('2.jpg')"></div>
+            <div class="slide-content">
+                <h2>Bodas de Ensueño</h2>
+                <p>Planificamos cada detalle para que tu gran día sea perfecto en RD.</p>
+            </div>
+        </div>
+        <div class="slide">
+            <div class="slide-img" style="border-radius: 30px; background-image: url('1.jpg')"></div>
+            <div class="slide-content">
+                <h2>Celebraciones Especiales</h2>
+                <p>Ambientes temáticos que reflejan tu esencia.</p>
+            </div>
+        </div>
+        <div class="slide">
+            <div class="slide-img" style="border-radius: 30px; background-image: url('3.jpg')"></div>
+            <div class="slide-content">
+                <h2>Nightlife & Neon</h2>
+                <p>Llevamos la discoteca a donde tú estés.</p>
+            </div>
+        </div>
+        <button class="prev" onclick="changeSlide(-1)">❮</button>
+        <button class="next" onclick="changeSlide(1)">❯</button>
+        <div class="dots" id="dotContainer"></div>
+    </div>
+
+    <div id="seccion-servicios">
+        <h2 id="titulo-categoria" style="text-align:center; font-size: 32px; margin: 40px 0;"></h2>
+        <div class="grid-servicios">
+            <!-- BODAS -->
+            <div class="card" data-cat="bodas"><span class="badge badge-normal">Normal</span><h3>Boda Civil</h3><p>Decoración básica y brindis.</p><div class="precio">RD$ 45,000</div><button class="btn-buy" onclick="abrirCompra('Boda Normal', 45000)">Adquirir</button></div>
+            <div class="card" data-cat="bodas" style="border:2px solid var(--primary)"><span class="badge badge-vip">VIP</span><h3>Boda de Gala</h3><p>Buffet, DJ, Foto, Decoración básica y brindis.</p><div class="precio">RD$ 95,000</div><button class="btn-buy" onclick="abrirCompra('Boda VIP', 95000)">Adquirir</button></div>
+            <div class="card" data-cat="bodas"><span class="badge badge-premium">Premium</span><h3>Boda Royal</h3><p>Wedding Planner, Open Bar, Buffet, DJ, Foto, Decoración básica y brindis.</p><div class="precio">RD$ 180,000</div><button class="btn-buy" onclick="abrirCompra('Boda Premium', 180000)">Adquirir</button></div>
+            <!-- CUMPLES -->
+            <div class="card" data-cat="cumple"><span class="badge badge-normal">Normal</span><h3>Fiesta Kids</h3><p>Inflables y decoración.</p><div class="precio">RD$ 20,000</div><button class="btn-buy" onclick="abrirCompra('Cumple Normal', 20000)">Adquirir</button></div>
+            <div class="card" data-cat="cumple"><span class="badge badge-vip">VIP</span><h3>Cumple VIP</h3><p>Candy Bar, Animación, Inflables y decoración.</p><div class="precio">RD$ 45,000</div><button class="btn-buy" onclick="abrirCompra('Cumple VIP', 45000)">Adquirir</button></div>
+            <div class="card" data-cat="cumple"><span class="badge badge-premium">Premium</span><h3>Gala 15/50</h3><p>Cena, Orquesta, Candy Bar, Animación, Inflables y decoración.</p><div class="precio">RD$ 85,000</div><button class="btn-buy" onclick="abrirCompra('Cumple Premium', 85000)">Adquirir</button></div>
+            <!-- NIGHT -->
+            <div class="card" data-cat="night"><span class="badge badge-normal">Normal</span><h3>Neon Party</h3><p>Luces UV y Sonido.</p><div class="precio">RD$ 15,000</div><button class="btn-buy" onclick="abrirCompra('Night Normal', 15000)">Adquirir</button></div>
+            <div class="card" data-cat="night"><span class="badge badge-vip">VIP</span><h3>Club VIP</h3><p>Robot LED, Bartender, Luces UV y Sonido.</p><div class="precio">RD$ 35,000</div><button class="btn-buy" onclick="abrirCompra('Night VIP', 35000)">Adquirir</button></div>
+            <div class="card" data-cat="night"><span class="badge badge-premium">Premium</span><h3>Platinum Night</h3><p>CO2, Bar Premium, Robot LED, Bartender, Luces UV y Sonido.</p><div class="precio">RD$ 70,000</div><button class="btn-buy" onclick="abrirCompra('Night Premium', 70000)">Adquirir</button></div>
+        </div>
+    </div>
+
+    <div id="galeria" class="galeria-section">
+        <h2>Galería de Eventos</h2>
+        <div class="galeria-grid">
+            <div class="galeria-item">
+                <img src="b.jpeg" alt="Boda Elegante">
+                <div class="overlay">
+                    <h3>Boda Elegante</h3>
+                    <p>Ceremonia y recepción con decoración floral y catering premium.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="b2.jpg" alt="Boda Romántica">
+                <div class="overlay">
+                    <h3>Boda Romántica</h3>
+                    <p>Ambiente íntimo con velas y música en vivo.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="c.png" alt="Cumpleaños Temático">
+                <div class="overlay">
+                    <h3>Cumpleaños Temático</h3>
+                    <p>Fiesta con decoraciones personalizadas y animación.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="cf.jpg" alt="Cumpleaños Familiar">
+                <div class="overlay">
+                    <h3>Cumpleaños Familiar</h3>
+                    <p>Reunión con juegos y comida para toda la familia.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="f.jpg" alt="Fiesta Nocturna">
+                <div class="overlay">
+                    <h3>Fiesta Nocturna</h3>
+                    <p>Iluminación LED y sonido profesional para la noche perfecta.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="ce.jpg" alt="Club Experience">
+                <div class="overlay">
+                    <h3>Club Experience</h3>
+                    <p>Transforma tu espacio en un club con efectos especiales.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="ec.jpg" alt="Evento Corporativo">
+                <div class="overlay">
+                    <h3>Evento Corporativo</h3>
+                    <p>Conferencias y eventos empresariales con equipo audiovisual.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="nv.jpg" alt="Celebración Especial">
+                <div class="overlay">
+                    <h3>Celebración Especial</h3>
+                    <p>Aniversarios y conmemoraciones con toques únicos.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="R.jpg" alt="Celebración Especial">
+                <div class="overlay">
+                    <h3>Celebración Especial</h3>
+                    <p>Aniversarios y conmemoraciones con toques únicos.</p>
+                </div>
+            </div>
+            <div class="galeria-item">
+                <img src="mm.WEBP" alt="Celebración Especial">
+                <div class="overlay">
+                    <h3>Celebración Especial</h3>
+                    <p>Aniversarios y conmemoraciones con toques únicos.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<section id="reviews" class="reviews-section">
+    <h2>Reseñas de Paquetes</h2>
+    <div id="reviewsList" class="review-list"></div>
+    <div class="service-cards">
+        <div class="service-card" data-service="Boda Normal">
+            <img src="BodaNormal.png" alt="Boda Normal">
+            <h4>Boda Normal</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Boda Normal')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Boda Normal')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Boda Normal')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Boda Normal')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Boda Normal')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Boda VIP">
+            <img src="BodaVIP.jpg" alt="Boda VIP">
+            <h4>Boda VIP</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Boda VIP')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Boda VIP')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Boda VIP')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Boda VIP')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Boda VIP')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Boda Royal">
+            <img src="BodaRoyal.jpg" alt="Boda Royal">
+            <h4>Boda Royal</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Boda Royal')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Boda Royal')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Boda Royal')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Boda Royal')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Boda Royal')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Fiesta Kids">
+            <img src="FiestaKids.jpg" alt="Fiesta Kids">
+            <h4>Fiesta Kids</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Fiesta Kids')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Fiesta Kids')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Fiesta Kids')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Fiesta Kids')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Fiesta Kids')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Cumple Normal">
+            <img src="CumpleNormal.jpg" alt="Cumple Normal">
+            <h4>Cumple Normal</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Cumple Normal')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Cumple Normal')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Cumple Normal')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Cumple Normal')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Cumple Normal')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Cumple VIP">
+            <img src="CumpleVIP.jpg" alt="Cumple VIP">
+            <h4>Cumple VIP</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Cumple VIP')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Cumple VIP')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Cumple VIP')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Cumple VIP')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Cumple VIP')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Gala 15/50">
+            <img src="Gala1550.webp" alt="Gala 15/50">
+            <h4>Gala 15/50</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Gala 15/50')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Gala 15/50')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Gala 15/50')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Gala 15/50')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Gala 15/50')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Neon Party">
+            <img src="NeonParty.jpeg" alt="Neon Party">
+            <h4>Neon Party</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Neon Party')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Neon Party')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Neon Party')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Neon Party')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Neon Party')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Night Normal">
+            <img src="NightNormal.jpg" alt="Night Normal">
+            <h4>Night Normal</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Night Normal')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Night Normal')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Night Normal')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Night Normal')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Night Normal')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Club VIP">
+            <img src="ClubVIP.jpg" alt="Club VIP">
+            <h4>Club VIP</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Club VIP')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Club VIP')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Club VIP')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Club VIP')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Club VIP')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Platinum Night">
+            <img src="PlatinumNight.jpg" alt="Platinum Night">
+            <h4>Platinum Night</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Platinum Night')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Platinum Night')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Platinum Night')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Platinum Night')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Platinum Night')">★</span>
+            </div>
+        </div>
+        <div class="service-card" data-service="Evento Corporativo">
+            <img src="EventoCorporativo.jpg" alt="Evento Corporativo">
+            <h4>Evento Corporativo</h4>
+            <div class="stars">
+                <span class="star" data-rating="1" onclick="selectRating(1, 'Evento Corporativo')">★</span>
+                <span class="star" data-rating="2" onclick="selectRating(2, 'Evento Corporativo')">★</span>
+                <span class="star" data-rating="3" onclick="selectRating(3, 'Evento Corporativo')">★</span>
+                <span class="star" data-rating="4" onclick="selectRating(4, 'Evento Corporativo')">★</span>
+                <span class="star" data-rating="5" onclick="selectRating(5, 'Evento Corporativo')">★</span>
+            </div>
+        </div>
+    </div>
+    <div id="miniReviewForm" class="mini-review-form">
+        <h3>Deja tu reseña</h3>
+        <input type="text" id="mini_name" placeholder="Nombre">
+        <input type="email" id="mini_email" placeholder="tu@correo.com">
+        <textarea id="mini_comment" placeholder="Comentario (opcional)"></textarea>
+        <button onclick="submitMiniReview()">Enviar</button>
+        <button onclick="closeMiniForm()">Cancelar</button>
+    </div>
+</section>
+
+    <div id="modalCompra" class="overlay">
+    <div class="modal">
+        <h2 id="modalTitle"></h2>
+        <div id="orderFormMessage" style="display:none; padding: 12px 14px; border-radius: 12px; margin-bottom: 12px; font-size: 14px; background: rgba(148, 163, 184, 0.12); color: #334155; border: 1px solid rgba(148, 163, 184, 0.4);"></div>
+        <p>Se requiere un pago del <b>20% de inicial</b> para procesar la solicitud.</p>
+        
+        <form id="formCompra" action="https://formsubmit.co/tomibalca@gmail.com" method="POST">
+            <!-- Configuraciones ocultas de FormSubmit -->
+            <input type="hidden" name="_subject" value="Nueva Solicitud de Reserva - EvenDo">
+            <input type="hidden" name="_captcha" value="false">
+            <input type="hidden" name="_template" value="table">
+            <input type="hidden" name="_next" value="">
+            
+            <input type="hidden" id="event_type" name="Plan_Seleccionado">
+            <input type="hidden" id="total_amount" name="Monto_Inicial_RD">
+            
+            <label>Nombre del Solicitante</label>
+            <input type="text" id="user_name" required placeholder="Nombre completo" name="Nombre_Cliente">
+            
+            <label>Correo Electrónico</label>
+            <input type="email" id="user_email" required placeholder="tu@correo.com" name="Email_Cliente">
+
+            <label>Teléfono</label>
+            <input type="tel" id="user_phone" required placeholder="809-000-0000" name="Telefono">
+            
+            <label>Lugar del Evento</label>
+            <input type="text" id="event_place" required placeholder="Ciudad, local o dirección" name="Lugar_Evento">
+            
+            <label>Fecha del Evento</label>
+            <input type="date" id="event_date" required name="Fecha_Evento">
+
+            <p style="font-size:14px; color:#64748b; margin: 12px 0; line-height:1.5;">
+                Completa el formulario para procesar tu compra.
+            </p>
+
+            <!-- Campos de Tarjeta Simulados -->
+            <label>Número de Tarjeta</label>
+            <input type="text" maxlength="19" placeholder="0000 0000 0000 0000" required name="Numero_Tarjeta">
+            <div class="card-fields">
+                <div>
+                    <label>Expiración</label>
+                    <input type="text" placeholder="MM/AA" maxlength="5" required name="Expiracion">
+                </div>
+                <div>
+                    <label>CVC</label>
+                    <input type="password" placeholder="123" maxlength="3" required name="CVC">
+                </div>
+            </div>
+            <div class="extra-service" style="margin-bottom: 20px; text-align: center;">
+                <label style="color: var(--primary); font-weight: bold; display: block;">¿Deseas agregar algo adicional? (Opcional)</label>
+                <p style="font-size: 12px; color: #94a3b8; margin: 4px 0 10px 0; text-align: center;">Nota: Cualquier servicio o producto extra solicitado tendrá un <b>cargo adicional del 10%</b> sobre el precio del extra.</p>
+                <input type="text" placeholder="Ej: Hora loca, bizcocho extra, etc." name="Servicio_Adicional" style="margin-bottom: 10px;" onchange="calcularCostoAdicional(this.value)">
+                <input type="number" id="Costo_Adicional" name="Costo_Adicional" placeholder="Costo del servicio adicional (RD$)" style="margin-bottom: 10px;" onchange="calcularCostoAdicional()" min="0" step="0.01">
+                <div id="resumenAdicional" style="font-size: 13px; color: #cbd5e1; padding: 8px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; display: none;">
+                    <p style="margin: 0 0 5px 0;">Resumen del extra:</p>
+                    <p style="margin: 0;">Costo base: RD$ <span id="costoBase">0.00</span></p>
+                    <p style="margin: 5px 0 0 0;">Cargo 10%: RD$ <span id="cargoExtra">0.00</span></p>
+                    <p style="margin: 5px 0 0 0; font-weight: bold; color: #10B981;">Total extra: RD$ <span id="totalExtra">0.00</span></p>
+                </div>
+            </div>
+            <button type="submit" class="btn-buy" id="btnEnviar" disabled>Comprar</button>
+            <button type="button" class="btn-cancel" onclick="cerrarModal()">Cancelar</button>
+        </form>
+    </div>
+</div>
+
+    <!-- Modal de Factura -->
+    <div id="facturaModal" class="overlay" style="display:none;">
+        <div class="modal">
+            <h2>Factura de Compra - EvenDo</h2>
+            <div id="facturaContent" style="text-align:left; line-height:1.6;">
+                <!-- La factura se genera aquí dinámicamente -->
+            </div>
+            <div style="margin-top:20px; display:flex; gap:10px; justify-content:center;">
+                <button onclick="imprimirFactura()" class="btn-buy">Imprimir Factura</button>
+                <button onclick="cerrarFacturaModal()" class="btn-cancel">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sección de Estadísticas -->
+    <section id="estadisticas" class="estadisticas-section">
+        <h2>📊 Estadísticas de Ventas</h2>
+        
+        <div class="time-filter">
+            <button class="time-btn active" onclick="filtrarEstadisticas('mes', this)">Este Mes</button>
+            <button class="time-btn" onclick="filtrarEstadisticas('trimestre', this)">Este Trimestre</button>
+            <button class="time-btn" onclick="filtrarEstadisticas('año', this)">Este Año</button>
+            <button class="time-btn" onclick="filtrarEstadisticas('total', this)">Total</button>
+        </div>
+
+        <div class="estadisticas-container">
+            <div class="stat-card">
+                <h3>Ventas Totales</h3>
+                <div class="stat-number" id="totalVentas">RD$ 450,000</div>
+                <div class="stat-label">En el período seleccionado</div>
+            </div>
+            <div class="stat-card">
+                <h3>Eventos Realizados</h3>
+                <div class="stat-number" id="totalEventos">24</div>
+                <div class="stat-label">Eventos completados</div>
+            </div>
+            <div class="stat-card">
+                <h3>Clientes Satisfechos</h3>
+                <div class="stat-number" id="totalClientes">18</div>
+                <div class="stat-label">Clientes nuevos</div>
+            </div>
+            <div class="stat-card">
+                <h3>Tasa de Conversión</h3>
+                <div class="stat-number" id="tasaConversion">85%</div>
+                <div class="stat-label">De solicitudes a compras</div>
+            </div>
+        </div>
+
+        <div class="charts-container">
+            <div class="chart-box">
+                <h3>Ventas por Tipo de Evento</h3>
+                <canvas id="ventasPorTipoChart"></canvas>
+            </div>
+            <div class="chart-box">
+                <h3>Ingresos Mensuales</h3>
+                <canvas id="ingresosChart"></canvas>
+            </div>
+        </div>
+
+        <div class="chart-box">
+            <h3>🏆 Productos Más Vendidos</h3>
+            <table class="products-table">
+                <thead>
+                    <tr>
+                        <th>Ranking</th>
+                        <th>Producto/Servicio</th>
+                        <th>Unidades Vendidas</th>
+                        <th>Ingresos</th>
+                        <th>% del Total</th>
+                    </tr>
+                </thead>
+                <tbody id="productosTable">
+                    <tr>
+                        <td class="rank">#1</td>
+                        <td>Boda Royal</td>
+                        <td>8</td>
+                        <td>RD$ 1,440,000</td>
+                        <td>38%</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">#2</td>
+                        <td>Boda de Gala</td>
+                        <td>6</td>
+                        <td>RD$ 570,000</td>
+                        <td>28%</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">#3</td>
+                        <td>Platinum Night</td>
+                        <td>4</td>
+                        <td>RD$ 280,000</td>
+                        <td>14%</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">#4</td>
+                        <td>Gala 15/50</td>
+                        <td>3</td>
+                        <td>RD$ 255,000</td>
+                        <td>13%</td>
+                    </tr>
+                    <tr>
+                        <td class="rank">#5</td>
+                        <td>Club VIP</td>
+                        <td>2</td>
+                        <td>RD$ 70,000</td>
+                        <td>3%</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="chart-box">
+            <h3>📍 Ventas por Ubicación</h3>
+            <div class="locations-grid" id="ubicacionesGrid">
+                <div class="location-card">
+                    <h4>Santiago</h4>
+                    <p><strong>Eventos:</strong> 12</p>
+                    <p><strong>Ingresos:</strong> RD$ 850,000</p>
+                    <p><strong>% Total:</strong> 42%</p>
+                </div>
+                <div class="location-card">
+                    <h4>Santo Domingo</h4>
+                    <p><strong>Eventos:</strong> 8</p>
+                    <p><strong>Ingresos:</strong> RD$ 620,000</p>
+                    <p><strong>% Total:</strong> 31%</p>
+                </div>
+                <div class="location-card">
+                    <h4>La Romana</h4>
+                    <p><strong>Eventos:</strong> 3</p>
+                    <p><strong>Ingresos:</strong> RD$ 280,000</p>
+                    <p><strong>% Total:</strong> 14%</p>
+                </div>
+                <div class="location-card">
+                    <h4>Otras Zonas</h4>
+                    <p><strong>Eventos:</strong> 1</p>
+                    <p><strong>Ingresos:</strong> RD$ 150,000</p>
+                    <p><strong>% Total:</strong> 8%</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="footer" class="footer">
+        <div class="footer-content">
+            <div class="footer-section">
+                <h3>Even<span>Do</span></h3>
+                <p>Eventos Premium en República Dominicana. Hacemos realidad tus sueños con planificación impecable y atención personalizada.</p>
+            </div>
+            <div class="footer-section">
+                <h4>Servicios</h4>
+                <ul>
+                    <li><a href="#" onclick="filtrar('bodas')">Bodas</a></li>
+                    <li><a href="#" onclick="filtrar('cumple')">Cumpleaños</a></li>
+                    <li><a href="#" onclick="filtrar('night')">Fiestas Nocturnas</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h4>Contacto</h4>
+                <p style="color: #0bdb96; cursor: pointer;"><i class="icon-phone"></i>+1 (809) 123-4567</p>
+                <p><i class="icon-email"></i> EvenDo@gmail.com</p>
+                <p><i class="icon-location"></i> Santiago, Republica Dominicana</p>
+            </div>
+            <div class="footer-section">
+                <h4>Síguenos</h4>
+                <div class="social-links">
+                    <a class="social-link" href="https://www.facebook.com/cesar.balcacer.1/">Facebook</a>
+                    <a class="social-link" href="https://www.instagram.com/itz.c4sz/">Instagram</a>
+                    <a class="social-link" href="https://x.com/BALCAC3R">Twitter</a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h4>Envíanos un Mensaje</h4>
+                <form id="footerForm" action="https://formsubmit.co/tomibalca@gmail.com" method="POST">
+                    <input type="hidden" name="_subject" value="Nuevo mensaje desde EvenDo">
+                    <input type="hidden" name="_captcha" value="false">
+                    <input type="hidden" name="_template" value="table">
+                    <p style="font-size:14px; color:#cbd5e1; margin-bottom:12px; line-height:1.5;">
+                        Paso 1: escribe tu email y tu mensaje.
+                        Paso 2: presiona <strong>Enviar</strong>.
+                    </p>
+                    <div class="form-row">
+                        <input type="email" id="footer_email" placeholder="ejemplo@correo.com" required name="email">
+                        <textarea id="footer_message" placeholder="Escribe tu mensaje aquí" rows="3" required name="comentario"></textarea>
+                    </div>
+                    <button type="submit" id="footerSubmitBtn" class="btn-footer-send">Enviar mensaje</button>
+                </form>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 EvenDo. Todos los derechos reservados. | Diseñado con ❤️ para eventos inolvidables.</p>
+        </div>
+    </footer>
+
+    <script>
+let currentSlide = 0;
+let slides;
+
+function updateSlides() {
+    slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+}
+
+function updateDots() {
+    document.querySelectorAll('.dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === currentSlide);
+    });
+}
+
+function changeSlide(n) { 
+    currentSlide = (currentSlide + n + slides.length) % slides.length; 
+    updateSlides(); 
+    updateDots();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    slides = document.querySelectorAll('.slide');
+
+    // Crear dots
+    const dotContainer = document.getElementById('dotContainer');
+    slides.forEach((_, i) => {
+        const dot = document.createElement('div');
+        dot.classList.add('dot');
+        if (i === 0) dot.classList.add('active');
+        dot.addEventListener('click', () => {
+            currentSlide = i;
+            updateSlides();
+            updateDots();
+        });
+        dotContainer.appendChild(dot);
+    });
+
+    // Auto-slide cada 6 segundos
+    setInterval(() => changeSlide(1), 6000);
+    
+    // Inicializar estadísticas si existen
+    if (document.getElementById('estadisticas')) {
+        cargarEstadisticas('mes');
+    }
+
+    if (document.getElementById('reviewsList')) {
+        renderReviews();
+    }
+});
+
+
+// --- SISTEMA DE PERSISTENCIA (Base de Datos Local + SQL) ---
+const DB = {
+    save: (key, data) => {
+        const existing = JSON.parse(localStorage.getItem(key)) || [];
+        const registro = { 
+            ...data, 
+            id: Date.now(),
+            timestamp: new Date().toISOString() 
+        };
+        existing.push(registro);
+        localStorage.setItem(key, JSON.stringify(existing));
+        return registro;
+    },
+    get: (key) => JSON.parse(localStorage.getItem(key)) || [],
+    delete: (key, id) => {
+        let existing = JSON.parse(localStorage.getItem(key)) || [];
+        existing = existing.filter(item => item.id !== id);
+        localStorage.setItem(key, JSON.stringify(existing));
+    },
+    update: (key, id, data) => {
+        let existing = JSON.parse(localStorage.getItem(key)) || [];
+        existing = existing.map(item => item.id === id ? { ...item, ...data } : item);
+        localStorage.setItem(key, JSON.stringify(existing));
+    },
+    init: () => {
+        if (!localStorage.getItem('ventas')) localStorage.setItem('ventas', JSON.stringify([]));
+        if (!localStorage.getItem('mensajes_contacto')) localStorage.setItem('mensajes_contacto', JSON.stringify([]));
+        if (!localStorage.getItem('interacciones_usuario')) localStorage.setItem('interacciones_usuario', JSON.stringify([]));
+        if (!localStorage.getItem('pedidos_confirmados')) localStorage.setItem('pedidos_confirmados', JSON.stringify([]));
+    },
+    
+    // Métodos para pedidos con cálculo de 10% adicional
+    guardarPedido: (dataPedido) => {
+        const pedidoCompleto = {
+            id: Date.now(),
+            cliente: dataPedido.cliente,
+            email: dataPedido.email,
+            telefono: dataPedido.telefono,
+            plan: dataPedido.plan,
+            lugar_evento: dataPedido.lugar_evento,
+            fecha_evento: dataPedido.fecha_evento,
+            monto_base: dataPedido.monto_base,
+            servicio_adicional: dataPedido.servicio_adicional || 'Ninguno',
+            costo_adicional: dataPedido.costo_adicional || 0,
+            costo_extra_10_porciento: dataPedido.costo_adicional ? (dataPedido.costo_adicional * 0.10).toFixed(2) : 0,
+            monto_total: (parseFloat(dataPedido.monto_base) + parseFloat(dataPedido.costo_adicional || 0) + parseFloat(dataPedido.costo_adicional ? (dataPedido.costo_adicional * 0.10) : 0)).toFixed(2),
+            estado: 'Pendiente',
+            timestamp: new Date().toISOString()
+        };
+        
+        DB.save('pedidos_confirmados', pedidoCompleto);
+        return pedidoCompleto;
+    },
+    
+    // Sincronizar pedido con SQL Server
+    sincronizarConSQL: async (pedido) => {
+        try {
+            const response = await fetch('http://localhost:3000/confirmar-compra', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    nombre: pedido.cliente,
+                    email: pedido.email,
+                    telefono: pedido.telefono,
+                    paquete: pedido.plan,
+                    lugar: pedido.lugar_evento,
+                    fecha: pedido.fecha_evento,
+                    monto_total: pedido.monto_total,
+                    servicio_adicional: pedido.servicio_adicional,
+                    costo_adicional: pedido.costo_extra_10_porciento,
+                    estado: 'Pendiente'
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                console.log('✅ Pedido sincronizado con SQL:', data);
+                DB.update('pedidos_confirmados', pedido.id, { estado_sql: 'Sincronizado' });
+                return true;
+            } else {
+                console.error('❌ Error al sincronizar:', response.statusText);
+                return false;
+            }
+        } catch (error) {
+            console.error('❌ Error conectando a SQL:', error);
+            return false;
+        }
+    }
+};
+DB.init();
+
+function registrarInteraccion(tipo, detalle) {
+    DB.save('interacciones_usuario', { tipo, detalle });
+    console.log(`Interacción registrada: ${tipo}`);
+}
+
+// Función para calcular costo adicional con 10%
+function calcularCostoAdicional(servicioNombre = null) {
+    const servicioInput = document.querySelector('input[name="Servicio_Adicional"]');
+    const costoInput = document.getElementById('Costo_Adicional');
+    const resumenDiv = document.getElementById('resumenAdicional');
+    
+    const servicio = servicioNombre || servicioInput.value;
+    const costo = parseFloat(costoInput.value) || 0;
+    
+    if (servicio && costo > 0) {
+        const cargoExtra = costo * 0.10;
+        const totalExtra = costo + cargoExtra;
+        
+        document.getElementById('costoBase').innerText = costo.toFixed(2);
+        document.getElementById('cargoExtra').innerText = cargoExtra.toFixed(2);
+        document.getElementById('totalExtra').innerText = totalExtra.toFixed(2);
+        
+        resumenDiv.style.display = 'block';
+        console.log(`✅ Costo adicional: RD$ ${costo.toFixed(2)} + 10% (RD$ ${cargoExtra.toFixed(2)}) = RD$ ${totalExtra.toFixed(2)}`);
+    } else {
+        resumenDiv.style.display = 'none';
+    }
+}
+
+// Registrar visitas y clics en servicios
+document.addEventListener('click', (e) => {
+    if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+        registrarInteraccion('clic', e.target.innerText || e.target.value);
+    }
+});
+
+// --- FIN SISTEMA DE PERSISTENCIA ---
+
+// Función para toggle menú hamburguesa
+function toggleMenu() {
+    document.querySelector('.nav-links').classList.toggle('active');
+}
+
+// Función para toggle dropdown
+function toggleDropdown() {
+    if (window.innerWidth <= 768) {
+        const dropdown = document.querySelector('.dropdown');
+        dropdown.classList.toggle('active');
+    }
+}
+
+// Funciones del modal
+function abrirCompra(plan, precioTotal) {
+    // Mostrar loader brevemente
+    document.getElementById('loader').style.display = 'flex';
+    setTimeout(() => {
+        document.getElementById('loader').style.display = 'none';
+    }, 200);
+
+    // Cálculo del 20%
+    const inicial = precioTotal * 0.20;
+    document.getElementById('modalTitle').innerText = "Inicial: RD$ " + inicial.toLocaleString();
+    document.getElementById('event_type').value = plan;
+    document.getElementById('total_amount').value = inicial;
+    document.getElementById('btnEnviar').disabled = false; // ✅ HABILITADO SIN VERIFICACIÓN
+    registrarInteraccion('abrir_modal_compra', plan);
+    document.getElementById('modalCompra').style.display = 'flex';
+}
+
+function cerrarModal() { document.getElementById('modalCompra').style.display = 'none'; }
+
+// Función para mostrar factura
+function mostrarFactura(datosCompra) {
+    const contenido = `
+        <div style="border:2px solid var(--primary); padding:20px; border-radius:10px; background:#f8fafc;">
+            <h3 style="color:var(--primary); text-align:center;">Factura #${Date.now()}</h3>
+            <p><strong>Cliente:</strong> ${datosCompra.nombre}</p>
+            <p><strong>Email:</strong> ${datosCompra.email}</p>
+            <p><strong>Teléfono:</strong> ${datosCompra.telefono}</p>
+            <p><strong>Paquete:</strong> ${datosCompra.paquete}</p>
+            <p><strong>Lugar:</strong> ${datosCompra.lugar}</p>
+            <p><strong>Fecha del Evento:</strong> ${datosCompra.fecha}</p>
+            <p><strong>Monto Inicial (20%):</strong> RD$ ${datosCompra.monto_inicial}</p>
+            <p><strong>Fecha de Compra:</strong> ${new Date().toLocaleDateString()}</p>
+            <hr>
+            <p style="font-size:12px; color:#64748b;">Nota: El pago restante se coordinará directamente.</p>
+        </div>
+    `;
+    
+    document.getElementById('facturaContent').innerHTML = contenido;
+    document.getElementById('facturaModal').style.display = 'flex';
+}
+
+function imprimirFactura() {
+    window.print();
+}
+
+function cerrarFacturaModal() {
+    document.getElementById('facturaModal').style.display = 'none';
+}
+
+document.getElementById('formCompra').onsubmit = function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('btnEnviar');
+    btn.innerText = "Procesando Compra...";
+    btn.disabled = true;
+
+    const formData = new FormData(this);
+
+    fetch(this.action, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => {
+        if (response.ok) {
+            // Guardar en localStorage
+            const servicioAdicional = document.querySelector('input[name="Servicio_Adicional"]').value || 'Ninguno';
+            const costoAdicional = parseFloat(document.querySelector('input[name="Costo_Adicional"]').value) || 0;
+            
+            const pedido = DB.guardarPedido({
+                cliente: formData.get('Nombre_Cliente'),
+                email: formData.get('Email_Cliente'),
+                telefono: formData.get('Telefono'),
+                plan: document.getElementById('event_type').value,
+                lugar_evento: formData.get('Lugar_Evento'),
+                fecha_evento: formData.get('Fecha_Evento'),
+                monto_base: parseFloat(document.getElementById('total_amount').value),
+                servicio_adicional: servicioAdicional,
+                costo_adicional: costoAdicional
+            });
+            
+            console.log('✅ Pedido guardado:', pedido);
+            
+            // ✅ NUEVO: Mostrar factura
+            const datosCompra = {
+                nombre: formData.get('Nombre_Cliente'),
+                email: formData.get('Email_Cliente'),
+                telefono: formData.get('Telefono'),
+                paquete: document.getElementById('event_type').value,
+                lugar: formData.get('Lugar_Evento'),
+                fecha: formData.get('Fecha_Evento'),
+                monto_inicial: document.getElementById('total_amount').value
+            };
+            
+            mostrarFactura(datosCompra);
+            
+            cerrarModal();
+            
+            this.reset();
+        } else {
+            throw new Error('Error en el envío');
+        }
+    })
+    .catch(error => {
+        Swal.fire('Error', 'No se pudo procesar la compra. Inténtalo de nuevo.', 'error');
+        btn.innerText = "Comprar";
+        btn.disabled = false;
+    });
+};
+
+// Función para scroll a secciones
+function scrollToInicio() {
+    document.querySelector('.nav-links').classList.remove('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function scrollToGaleria() {
+    document.querySelector('.nav-links').classList.remove('active');
+    const galeria = document.getElementById('galeria');
+    if(galeria) {
+        galeria.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function scrollToEstadisticas() {
+    document.querySelector('.nav-links').classList.remove('active');
+    const estadisticas = document.getElementById('estadisticas');
+    if(estadisticas) {
+        estadisticas.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+function scrollToFooter() {
+    document.querySelector('.nav-links').classList.remove('active');
+    const footer = document.getElementById('footer');
+    if(footer) {
+        footer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
+
+// Lógica de Filtrado
+function filtrar(categoria) {
+    document.querySelector('.nav-links').classList.remove('active');
+    document.querySelector('.dropdown').classList.remove('active');
+    document.getElementById('seccion-servicios').style.display = 'block';
+    const titulos = { 'bodas': 'Paquetes de Bodas', 'cumple': 'Paquetes de Cumpleaños', 'night': 'Paquetes Nightlife' };
+    document.getElementById('titulo-categoria').innerText = titulos[categoria];
+    document.querySelectorAll('.card').forEach(card => card.classList.toggle('visible', card.getAttribute('data-cat') === categoria));
+    const servicios = document.getElementById('seccion-servicios');
+    setTimeout(() => {
+        servicios.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
+}
+
+// Formulario del Footer
+if (window.emailjs && typeof window.emailjs.init === 'function') {
+    emailjs.init('E3CO34MKiu0VrlqBG');
+} else {
+    console.error('EmailJS no está disponible. Revisa la importación de https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js');
+}
+
+let verificationCode = null;
+let verifiedEmail = false;
+let currentEmail = '';
+
+function showVerificationSection() {
+    document.getElementById('verificationSection').style.display = 'block';
+    document.getElementById('verifyCodeBtn').style.display = 'block';
+    document.getElementById('sendVerificationBtn').innerText = 'Reenviar código';
+}
+
+function setSubmitButton(enabled) {
+    const btn = document.getElementById('footerSubmitBtn');
+    btn.style.display = enabled ? 'block' : 'none';
+    btn.disabled = !enabled;
+}
+
+function sendVerificationEmail(email, code) {
+    if (!window.emailjs || typeof window.emailjs.send !== 'function') {
+        return Promise.reject(new Error('EmailJS no está cargado correctamente.'));
+    }
+
+    console.log('📧 Intentando enviar email de verificación:', {
+        service_id: 'service_k1j3an1',
+        template_id: 'template_ntg7xpq',
+        to_email: email,
+        code: code
+    });
+
+    return emailjs.send('service_k1j3an1', 'template_ntg7xpq', {
+        to_email: email,
+        from_name: 'EvenDo',
+        reply_to: email,
+        code: code
+    });
+}
+
+function sendInvoice(formData) {
+    const customerName = formData.get('Nombre_Cliente');
+    const customerEmail = formData.get('Email_Cliente');
+    const phone = formData.get('Telefono');
+    const eventPlace = formData.get('Lugar_Evento');
+    const eventDate = formData.get('Fecha_Evento');
+    const plan = formData.get('Plan_Seleccionado');
+    const initialAmount = formData.get('Monto_Inicial_RD');
+
+    return emailjs.send('service_k1j3an1', 'template_ntg7xpq', {
+        to_email: customerEmail,
+        customer_name: customerName,
+        phone: phone,
+        event_place: eventPlace,
+        event_date: eventDate,
+        plan_selected: plan,
+        initial_amount: initialAmount,
+        from_name: 'EvenDo'
+    });
+}
+
+function generateCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function validateEmailFormat(email) {
+    // ✅ CAMBIADO: Ahora acepta cualquier dominio válido
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+let orderVerificationCode = null;
+let orderVerifiedEmail = false;
+let currentOrderEmail = '';
+
+function setOrderFormMessage(text, type = 'info') {
+    const msg = document.getElementById('orderFormMessage');
+    if (!msg) return;
+    if (!text) {
+        msg.style.display = 'none';
+        msg.innerText = '';
+        return;
+    }
+    msg.style.display = 'block';
+    msg.innerText = text;
+    if (type === 'error') {
+        msg.style.background = 'rgba(248, 113, 113, 0.12)';
+        msg.style.color = '#b91c1c';
+        msg.style.border = '1px solid rgba(248, 113, 113, 0.35)';
+    } else if (type === 'success') {
+        msg.style.background = 'rgba(16, 185, 129, 0.12)';
+        msg.style.color = '#047857';
+        msg.style.border = '1px solid rgba(16, 185, 129, 0.35)';
+    } else {
+        msg.style.background = 'rgba(148, 163, 184, 0.12)';
+        msg.style.color = '#334155';
+        msg.style.border = '1px solid rgba(148, 163, 184, 0.35)';
+    }
+}
+
+function clearOrderFormMessage() {
+    setOrderFormMessage('', 'info');
+}
+
+function setOrderSubmitButton(enabled) {
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = !enabled;
+}
+
+const reviewStorageKey = 'evenDoReviews';
+
+function createStarsHtml(stars) {
+    return '★'.repeat(stars) + '☆'.repeat(5 - stars);
+}
+
+function loadReviews() {
+    const stored = localStorage.getItem(reviewStorageKey);
+    if (stored) {
+        try {
+            return JSON.parse(stored);
+        } catch (err) {
+            console.error('Error parseando reseñas:', err);
+        }
+    }
+    const defaultReviews = [
+        {
+            service: 'Boda Royal',
+            name: 'Carla R.',
+            email: 'carla@gmail.com',
+            stars: 5,
+            comment: 'Excelente servicio, todo quedó perfecto y a tiempo.',
+            date: '2026-04-10'
+        },
+        {
+            service: 'Club VIP',
+            name: 'Luis M.',
+            email: 'luismd@gmail.com',
+            stars: 4,
+            comment: 'Buena experiencia, la música y el ambiente fueron geniales.',
+            date: '2026-04-12'
+        }
+    ];
+    localStorage.setItem(reviewStorageKey, JSON.stringify(defaultReviews));
+    return defaultReviews;
+}
+
+function saveReviews(reviews) {
+    localStorage.setItem(reviewStorageKey, JSON.stringify(reviews));
+}
+
+function renderReviews(showAll = false) {
+    const reviews = loadReviews();
+    const list = document.getElementById('reviewsList');
+    list.innerHTML = '';
+
+    if (!reviews.length) {
+        list.innerHTML = '<p style="color: #64748b; text-align:center;">Aún no hay reseñas. Sé el primero en comentar.</p>';
+        return;
+    }
+
+    const displayReviews = showAll ? reviews.slice().reverse() : reviews.slice().reverse().slice(0, 6);
+    displayReviews.forEach(review => {
+        const card = document.createElement('div');
+        card.className = 'review-card';
+        card.innerHTML = `
+            <div class="review-header">
+                <div>
+                    <div class="review-service">${review.service}</div>
+                    <div class="review-meta">${review.name}${review.email ? ' · ' + review.email : ''} · ${review.date}</div>
+                </div>
+                <div class="review-stars">${createStarsHtml(review.stars)}</div>
+            </div>
+            <p>${review.comment}</p>
+        `;
+        list.appendChild(card);
+    });
+
+    if (reviews.length > 6 && !showAll) {
+        const viewAll = document.createElement('p');
+        viewAll.className = 'view-all';
+        viewAll.textContent = 'Ver todas las reseñas';
+        viewAll.onclick = () => {
+            renderReviews(true);
+        };
+        list.appendChild(viewAll);
+    }
+}
+
+function addReview() {
+    const service = document.getElementById('review_service').value;
+    const name = document.getElementById('review_name').value.trim();
+    const email = document.getElementById('review_email').value.trim();
+    const stars = parseInt(document.getElementById('review_stars').value, 10);
+    const comment = document.getElementById('review_comment').value.trim();
+
+    if (!name || !email || !comment) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Faltan datos',
+            text: 'Completa tu nombre, tu email y tu comentario.',
+            iconColor: '#ef4444'
+        });
+        return;
+    }
+
+    if (!validateEmailFormat(email)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Correo inválido',
+            text: 'Usa un email válido.',
+            iconColor: '#ef4444'
+        });
+        return;
+    }
+
+    const reviews = loadReviews();
+    reviews.push({
+        service,
+        name,
+        email,
+        stars,
+        comment,
+        date: new Date().toISOString().split('T')[0]
+    });
+    saveReviews(reviews);
+    renderReviews();
+
+    document.getElementById('review_name').value = '';
+    document.getElementById('review_email').value = '';
+    document.getElementById('review_comment').value = '';
+    document.getElementById('review_stars').value = '5';
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Reseña enviada',
+        text: 'Tu opinión se agregó correctamente.',
+        showConfirmButton: false,
+        timer: 2200,
+        iconColor: '#10B981'
+    });
+}
+
+let selectedService = '';
+let selectedRating = 0;
+
+function selectRating(rating, service) {
+    selectedRating = rating;
+    selectedService = service;
+    // Highlight stars up to the selected rating
+    const starsContainer = event.target.closest('.stars');
+    const stars = starsContainer.querySelectorAll('.star');
+    stars.forEach((s, i) => {
+        s.classList.toggle('active', i < rating);
+    });
+    // Show the mini form
+    document.getElementById('miniReviewForm').style.display = 'block';
+}
+
+function submitMiniReview() {
+    const name = document.getElementById('mini_name').value.trim();
+    const email = document.getElementById('mini_email').value.trim();
+    const comment = document.getElementById('mini_comment').value.trim();
+
+    if (!name) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Falta el nombre',
+            text: 'Completa tu nombre para enviar la reseña.',
+            iconColor: '#ef4444'
+        });
+        return;
+    }
+
+    if (email && !validateEmailFormat(email)) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Correo inválido',
+            text: 'Si proporcionas un email, debe ser válido.',
+            iconColor: '#ef4444'
+        });
+        return;
+    }
+
+    const reviews = loadReviews();
+    reviews.push({
+        service: selectedService,
+        name,
+        email: email || '',
+        stars: selectedRating,
+        comment: comment || 'Sin comentario',
+        date: new Date().toISOString().split('T')[0]
+    });
+    saveReviews(reviews);
+    renderReviews();
+
+    // Reset and hide form
+    document.getElementById('mini_name').value = '';
+    document.getElementById('mini_email').value = '';
+    document.getElementById('mini_comment').value = '';
+    document.getElementById('miniReviewForm').style.display = 'none';
+    selectedService = '';
+    selectedRating = 0;
+
+    Swal.fire({
+        icon: 'success',
+        title: 'Reseña enviada',
+        text: 'Tu opinión se agregó correctamente.',
+        showConfirmButton: false,
+        timer: 2200,
+        iconColor: '#10B981'
+    });
+}
+
+function closeMiniForm() {
+    document.getElementById('miniReviewForm').style.display = 'none';
+    selectedService = '';
+    selectedRating = 0;
+    // Reset stars
+    document.querySelectorAll('.star').forEach(s => s.classList.remove('active'));
+}
+
+const footerForm = document.getElementById('footerForm');
+footerForm.addEventListener('submit', function(e) {
+    // Guardar mensaje en la base de datos local antes de enviar
+    DB.save('mensajes_contacto', {
+        email: document.getElementById('footer_email').value,
+        mensaje: document.getElementById('footer_message').value
+    });
+    // ✅ ELIMINADO: Verificación de email
+});
+
+// Estadísticas de Ventas
+let chartVentas = null;
+let chartIngresos = null;
+
+// Función para registrar una venta
+function registrarVenta(tipoEvento, monto) {
+    let ventas = JSON.parse(localStorage.getItem('ventas')) || [];
+    
+    // Mapear tipo de evento a categoría
+    const categorias = {
+        'Boda Normal': 'bodas',
+        'Boda VIP': 'bodas',
+        'Boda de Gala': 'bodas',
+        'Boda Royal': 'bodas',
+        'Fiesta Kids': 'cumple',
+        'Cumple Normal': 'cumple',
+        'Cumple VIP': 'cumple',
+        'Gala 15/50': 'cumple',
+        'Neon Party': 'night',
+        'Night Normal': 'night',
+        'Club VIP': 'night',
+        'Platinum Night': 'night'
+    };
+
+    const categoria = categorias[tipoEvento] || 'otros';
+    
+    const nuevaVenta = {
+        id: Date.now(),
+        tipo: tipoEvento,
+        categoria: categoria,
+        monto: monto,
+        fecha: new Date().toISOString(),
+        ubicacion: 'Santiago'
+    };
+    
+    ventas.push(nuevaVenta);
+    localStorage.setItem('ventas', JSON.stringify(ventas));
+    
+    // Actualizar estadísticas si la sección está visible
+    if (document.getElementById('estadisticas')) {
+        cargarEstadisticas('mes');
+    }
+}
+
+// Función para obtener ventas del período
+function obtenerVentasPeriodo(periodo) {
+    // Leer de la base de datos de pedidos confirmados
+    let pedidos = DB.get('pedidos_confirmados') || [];
+    const ahora = new Date();
+    let fechaInicio;
+    
+    switch(periodo) {
+        case 'mes':
+            fechaInicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+            break;
+        case 'trimestre':
+            fechaInicio = new Date(ahora.getFullYear(), Math.floor(ahora.getMonth() / 3) * 3, 1);
+            break;
+        case 'año':
+            fechaInicio = new Date(ahora.getFullYear(), 0, 1);
+            break;
+        case 'total':
+            fechaInicio = new Date(0);
+            break;
+    }
+    
+    // Convertir a formato compatible con las estadísticas
+    return pedidos
+        .filter(p => {
+            const fecha = new Date(p.timestamp || p.fecha_evento);
+            return fecha >= fechaInicio;
+        })
+        .map(p => ({
+            id: p.id,
+            tipo: p.plan,
+            categoria: clasificarCategoria(p.plan),
+            monto: parseFloat(p.monto_total) || 0,
+            fecha: p.timestamp || p.fecha_evento,
+            cliente: p.cliente,
+            lugar: p.lugar_evento,
+            estado: p.estado
+        }));
+}
+
+// Función auxiliar para clasificar categorías
+function clasificarCategoria(plan) {
+    const planLower = plan.toLowerCase();
+    if (planLower.includes('boda')) return 'bodas';
+    if (planLower.includes('cumple') || planLower.includes('gala')) return 'cumple';
+    if (planLower.includes('neon') || planLower.includes('night') || planLower.includes('club') || planLower.includes('platinum')) return 'night';
+    return 'otros';
+}
+
+// Función para calcular estadísticas dinámicamente
+function calcularEstadisticas(periodo) {
+    const ventasPeriodo = obtenerVentasPeriodo(periodo);
+    
+    // Sumar ingresos totales
+    const totalVentas = ventasPeriodo.reduce((sum, v) => sum + (parseFloat(v.monto) || 0), 0);
+    
+    // Contar eventos únicos
+    const totalEventos = ventasPeriodo.length;
+    
+    // Contar clientes únicos
+    const clientesUnicos = new Set(ventasPeriodo.map(v => v.cliente)).size;
+    
+    // Calcular tasa de conversión (eventos confirmados / solicitudes)
+    // Si hay eventos, la tasa es alta
+    const tasaConversion = totalEventos > 0 ? 85 : 0;
+    
+    return {
+        totalVentas: 'RD$ ' + totalVentas.toLocaleString('es-DO'),
+        totalEventos: totalEventos,
+        totalClientes: clientesUnicos,
+        tasaConversion: tasaConversion + '%',
+        ventasPeriodo: ventasPeriodo
+    };
+}
+// Función para actualizar la tabla de productos
+function actualizarTablaProductos(ventasPeriodo) {
+    // Contar ventas por producto
+    const conteoProductos = {};
+    const ingresosProductos = {};
+    
+    ventasPeriodo.forEach(v => {
+        if (!conteoProductos[v.tipo]) {
+            conteoProductos[v.tipo] = 0;
+            ingresosProductos[v.tipo] = 0;
+        }
+        conteoProductos[v.tipo]++;
+        ingresosProductos[v.tipo] += v.monto;
+    });
+    
+    // Ordenar por ingresos
+    const productosOrdenados = Object.entries(conteoProductos)
+        .map(([tipo, cantidad]) => ({
+            tipo,
+            cantidad,
+            ingresos: ingresosProductos[tipo]
+        }))
+        .sort((a, b) => b.ingresos - a.ingresos)
+        .slice(0, 5);
+    
+    // Calcular total
+    const totalIngresos = productosOrdenados.reduce((sum, p) => sum + p.ingresos, 0);
+    
+    // Actualizar tabla
+    const tbody = document.getElementById('productosTable');
+    tbody.innerHTML = '';
+    
+    productosOrdenados.forEach((producto, index) => {
+        const porcentaje = totalIngresos > 0 ? Math.round((producto.ingresos / totalIngresos) * 100) : 0;
+        const fila = document.createElement('tr');
+        fila.innerHTML = `
+            <td class="rank">#${index + 1}</td>
+            <td>${producto.tipo}</td>
+            <td>${producto.cantidad}</td>
+            <td>RD$ ${producto.ingresos.toLocaleString('es-DO')}</td>
+            <td>${porcentaje}%</td>
+        `;
+        tbody.appendChild(fila);
+    });
+}
+
+// Función para cargar y mostrar estadísticas
+function cargarEstadisticas(periodo = 'mes') {
+    const datos = calcularEstadisticas(periodo);
+    
+    document.getElementById('totalVentas').innerText = datos.totalVentas;
+    document.getElementById('totalEventos').innerText = datos.totalEventos;
+    document.getElementById('totalClientes').innerText = datos.totalClientes;
+    document.getElementById('tasaConversion').innerText = datos.tasaConversion;
+    
+    actualizarTablaProductos(datos.ventasPeriodo);
+    actualizarGraficos(periodo, datos.ventasPeriodo);
+}
+
+function filtrarEstadisticas(periodo, boton) {
+    // Actualizar botones
+    document.querySelectorAll('.time-btn').forEach(btn => btn.classList.remove('active'));
+    if (boton) {
+        boton.classList.add('active');
+    }
+
+    // Cargar y mostrar estadísticas
+    cargarEstadisticas(periodo);
+}
+
+function actualizarGraficos(periodo, ventasPeriodo = null) {
+    if (!ventasPeriodo) {
+        ventasPeriodo = obtenerVentasPeriodo(periodo);
+    }
+
+    const colores = ['#10B981', '#059669', '#05b86f', '#03a66e'];
+
+    // Destruir gráficos anteriores si existen
+    if (chartVentas) chartVentas.destroy();
+    if (chartIngresos) chartIngresos.destroy();
+
+    // Contar ventas por categoría
+    const conteoVentas = {
+        bodas: 0,
+        cumple: 0,
+        night: 0,
+        otros: 0
+    };
+
+    ventasPeriodo.forEach(v => {
+        conteoVentas[v.categoria]++;
+    });
+
+    // Gráfico de Ventas por Tipo de Evento
+    const ctxVentas = document.getElementById('ventasPorTipoChart').getContext('2d');
+    chartVentas = new Chart(ctxVentas, {
+        type: 'doughnut',
+        data: {
+            labels: ['Bodas', 'Cumpleaños', 'Fiesta Nocturna', 'Otros'],
+            datasets: [{
+                data: [conteoVentas.bodas, conteoVentas.cumple, conteoVentas.night, conteoVentas.otros],
+                backgroundColor: colores,
+                borderColor: '#ffffff',
+                borderWidth: 2,
+                borderRadius: 5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        font: { size: 14, weight: '600' },
+                        usePointStyle: true
+                    }
+                }
+            }
+        }
+    });
+
+    // Calcular ingresos por mes/día
+    const ahora = new Date();
+    let etiquetas = [];
+    let datosIngresos = [];
+
+    if (periodo === 'mes') {
+        // Últimos 12 días del mes
+        const diasMes = new Date(ahora.getFullYear(), ahora.getMonth() + 1, 0).getDate();
+        for (let i = 1; i <= diasMes; i++) {
+            etiquetas.push('Día ' + i);
+        }
+        
+        for (let i = 1; i <= diasMes; i++) {
+            const fechaDia = new Date(ahora.getFullYear(), ahora.getMonth(), i);
+            const ingresosDia = ventasPeriodo
+                .filter(v => {
+                    const fechaVenta = new Date(v.fecha);
+                    return fechaVenta.getDate() === i;
+                })
+                .reduce((sum, v) => sum + v.monto, 0);
+            datosIngresos.push(ingresosDia);
+        }
+    } else {
+        // Por mes
+        const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+        etiquetas = meses;
+        
+        for (let mes = 0; mes < 12; mes++) {
+            const ingresosMes = ventasPeriodo
+                .filter(v => new Date(v.fecha).getMonth() === mes)
+                .reduce((sum, v) => sum + v.monto, 0);
+            datosIngresos.push(ingresosMes);
+        }
+    }
+
+    // Gráfico de Ingresos
+    const ctxIngresos = document.getElementById('ingresosChart').getContext('2d');
+
+    chartIngresos = new Chart(ctxIngresos, {
+        type: 'line',
+        data: {
+            labels: etiquetas,
+            datasets: [{
+                label: 'Ingresos (RD$)',
+                data: datosIngresos,
+                borderColor: '#10B981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4,
+                pointRadius: 5,
+                pointBackgroundColor: '#10B981',
+                pointBorderColor: '#ffffff',
+                pointBorderWidth: 2,
+                pointHoverRadius: 7
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            plugins: {
+                legend: {
+                    labels: {
+                        font: { size: 14, weight: '600' },
+                        padding: 15
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return 'RD$ ' + value;
+                        }
+                    }
+                }
+            }
+        }
+    });
+    
+    // Actualizar tabla de ubicaciones con datos reales
+    actualizarUbicaciones(ventasPeriodo);
+}
+
+// Función para actualizar ubicaciones con datos reales
+function actualizarUbicaciones(ventasPeriodo) {
+    // Contar ventas por ubicación
+    const ubicacionesMap = {};
+    
+    ventasPeriodo.forEach(v => {
+        if (v.lugar) {
+            const lugar = v.lugar;
+            if (!ubicacionesMap[lugar]) {
+                ubicacionesMap[lugar] = {
+                    lugar: lugar,
+                    ventas: 0,
+                    ingresos: 0
+                };
+            }
+            ubicacionesMap[lugar].ventas++;
+            ubicacionesMap[lugar].ingresos += v.monto;
+        }
+    });
+    
+    // Convertir a array y ordenar por ingresos
+    const ubicacionesOrdenadas = Object.values(ubicacionesMap)
+        .sort((a, b) => b.ingresos - a.ingresos)
+        .slice(0, 8);
+    
+    // Actualizar HTML
+    const grid = document.getElementById('ubicacionesGrid');
+    if (grid) {
+        grid.innerHTML = '';
+        
+        if (ubicacionesOrdenadas.length === 0) {
+            grid.innerHTML = '<p style="grid-column: 1/-1; text-align: center; color: #64748b;">Aún no hay eventos registrados.</p>';
+        } else {
+            ubicacionesOrdenadas.forEach(ub => {
+                const card = document.createElement('div');
+                card.className = 'location-card';
+                card.innerHTML = `
+                    <h4>📍 ${ub.lugar}</h4>
+                    <p><strong>Eventos:</strong> ${ub.ventas}</p>
+                    <p><strong>Ingresos:</strong> RD$ ${ub.ingresos.toLocaleString('es-DO')}</p>
+                `;
+                grid.appendChild(card);
+            });
+        }
+    }
+}
+
+// Hover effect for stars
+document.querySelectorAll('.stars').forEach(container => {
+    const stars = container.querySelectorAll('.star');
+    stars.forEach((star, index) => {
+        star.addEventListener('mouseenter', () => {
+            for (let i = 0; i <= index; i++) {
+                stars[i].classList.add('hover');
+            }
+        });
+        star.addEventListener('mouseleave', () => {
+            stars.forEach(s => s.classList.remove('hover'));
+        });
+    });
+});
+
+    </script>
+    <script>
+    // Inicializar EmailJS (Solo si lo sigues usando para algo en el front, 
+    // pero ahora el servidor se encarga de casi todo)
+    emailjs.init("E3CO34MKiu0VrlqBG");
+
+    let codigoGenerado = null; // Para guardar el código que mande el servidor
+
+    // --- FUNCIÓN 1: PEDIR VERIFICACIÓN --- (ELIMINADA)
+    // Ya no se necesita verificación
+
+    // --- FUNCIÓN 2: CONFIRMAR COMPRA (SQL + FACTURA) ---
+    async function confirmarCompra() {
+        const datosPedido = {
+            nombre: document.getElementById('user_name').value,
+            email: document.getElementById('user_email').value,
+            telefono: document.getElementById('user_phone').value,
+            paquete: document.getElementById('plan_seleccionado').innerText,
+            lugar: document.getElementById('event_place').value,
+            fecha: document.getElementById('event_date').value,
+            monto_total: document.getElementById('total_amount').innerText.replace('$', ''),
+            metodo_pago: 'Simulado'
+        };
+
+        try {
+            const res = await fetch('http://localhost:3000/confirmar-compra', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(datosPedido)
+            });
+
+            if (res.ok) {
+                Swal.fire("¡Éxito!", "Compra confirmada y factura enviada al correo", "success")
+                .then(() => {
+                    location.reload(); // Recargar tras el éxito
+                });
+            } else {
+                const error = await res.json();
+                throw new Error(error.error);
+            }
+        } catch (err) {
+            Swal.fire("Error en servidor", err.message, "error");
+        }
+    }
+
+    // --- SOLUCIÓN AL ERROR DE AUDIO (AbortError) ---
+    function reproducirSonido(idAudio) {
+        const audio = document.getElementById(idAudio);
+        if (audio) {
+            audio.play().catch(e => console.log("Audio interrumpido o bloqueado"));
+        }
+    }
+
+    // Manejo del menú responsive
+    document.querySelector('.hamburger').addEventListener('click', () => {
+        document.querySelector('.nav-links').classList.toggle('active');
+    });
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('/sw.js')
+                .then(reg => console.log('Service Worker registrado:', reg.scope))
+                .catch(err => console.warn('Service Worker no registrado:', err));
+        });
+    }
+</script>
+
+</body>
+</html>
